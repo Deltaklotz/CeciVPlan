@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect to PDF</title>
+    <script>
+        function redirectToPDF() {
+            // Get the current date
+            var today = new Date();
+            
+            // Get the current month and day with leading zeros if needed
+            var month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+            var day = String(today.getDate()).padStart(2, '0');
+
+            // Construct the URL to the PDF file
+            var pdfUrl = "https://www.ceciliengymnasium.de/attachments/article/1512/Vertretungsplan_" + day + "." + month + ".2024.pdf";
+
+            // Redirect to the PDF file
+            window.location.href = pdfUrl;
+        }
+    </script>
+</head>
+<body onload="redirectToPDF()">
+    <h1>Redirecting to your PDF...</h1>
+</body>
+</html>
