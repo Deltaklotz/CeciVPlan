@@ -72,19 +72,6 @@
         margin-bottom: 0px;
     }
 
-    button {
-        background-color: #1E1E1E;
-        color: #E0E0E0;
-        border: none;
-        padding: 1vw 20px;
-        margin: 0.5vw;
-        border-radius: 25px;
-        font-size: 16px;
-        cursor: pointer;
-        height: 13vh;
-        width: 13.75vw;
-    }
-
     input {
         background-color: #1E1E1E;
         color: #E0E0E0;
@@ -111,6 +98,7 @@
         margin-right: 0px;
     }
 
+    @media (orientation: landscape){
     .option-div {
         background: linear-gradient(to right bottom, #4535c1, #334ac9, #255cce, #206cd1, #2c7ad1, #0389d7, #0098d9, #07a5da, #00b7db, #19c7d7, #4dd6d0, #77e4c8);
         border-image-slice: 1; 
@@ -119,5 +107,43 @@
         border-radius: 25px;
         width: 25vw;
         margin-top:10px;
+    }
+
+    button {
+        background-color: #1E1E1E;
+        color: #E0E0E0;
+        border: none;
+        padding: 1vw 20px;
+        margin: 0.5vw;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        height: 13vh;
+        width: 13.75vw;
+    }
+    }
+    @media (orientation: portrait){
+    .option-div {
+        background: linear-gradient(to right bottom, #4535c1, #334ac9, #255cce, #206cd1, #2c7ad1, #0389d7, #0098d9, #07a5da, #00b7db, #19c7d7, #4dd6d0, #77e4c8);
+        border-image-slice: 1; 
+        padding: 25px;
+        padding-top: 5px;
+        border-radius: 25px;
+        width: 45vw;
+        margin-top:10px;
+    }
+
+    button {
+        background-color: #1E1E1E;
+        color: #E0E0E0;
+        border: none;
+        padding: 1vw 20px;
+        margin: 0.5vw;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        height: 13vh;
+        width: 26.75vw;
+    }
     }
 </style>
