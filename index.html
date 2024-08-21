@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Viewer</title>
+    <title>Vertretungsplan</title>
     <script>
         function getFormattedDate(date) {
             var month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
@@ -36,22 +36,24 @@
         }
     </script>
 </head>
-<body>
-    <p>
-    <h1>PDF Viewer</h1>
-    <button onclick="viewToday()">View Today's PDF</button>
-    <button onclick="viewTomorrow()">View Tomorrow's PDF</button>
-    <p/>
 
-    <h2>Or enter a specific date:</h2>
-    <label for="month">Month:</label>
-    <input type="number" id="month" min="1" max="12" placeholder="MM">
+<body>
+<center>
+    <h1>ceci vplan viewer</h1>
+    <button onclick="viewToday()">Heute</button>
+    <button onclick="viewTomorrow()">Morgen</button>
+
+    <div class="option-div">
+    <h2>Tag eingeben:</h2>
+    <input type="number" id="day" min="1" max="31" placeholder="Tag">
+    <input type="number" id="month" min="1" max="12" placeholder="Monat">
+    <br/>
     
-    <label for="day">Day:</label>
-    <input type="number" id="day" min="1" max="31" placeholder="DD">
     
-    <button onclick="viewSpecificDate()">View PDF for Specific Date</button>
+    <button style="width: 100%; height: 15%; margin: 0;" onclick="viewSpecificDate()">Los</button>
+</div>
 </body>
+
 </html>
 <style>
     body {
@@ -63,22 +65,24 @@
         margin: 0;
         text-align: center;
         align-items:center;
+        justify-content: center;
     }
 
-    h1, h2 {
-        margin-bottom: 20px;
+    h2 {
+        margin-bottom: 0px;
     }
 
     button {
         background-color: #1E1E1E;
         color: #E0E0E0;
         border: none;
-        padding: 10px 20px;
-        margin: 10px;
-        border-radius: 10px;
+        padding: 1vw 20px;
+        margin: 0.5vw;
+        border-radius: 25px;
         font-size: 16px;
         cursor: pointer;
-        height: 10%;
+        height: 13vh;
+        width: 13.75vw;
     }
 
     input {
@@ -86,8 +90,9 @@
         color: #E0E0E0;
         border: none;
         padding: 10px 20px;
-        margin: 10px;
-        border-radius: 10px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        border-radius: 25px;
         font-size: 16px;
         cursor: pointer;
         height: 5%;
@@ -103,7 +108,16 @@
     }
 
     label {
-        margin-right: 10px;
+        margin-right: 0px;
+    }
+
+    .option-div {
+        background: linear-gradient(to right bottom, #4535c1, #334ac9, #255cce, #206cd1, #2c7ad1, #0389d7, #0098d9, #07a5da, #00b7db, #19c7d7, #4dd6d0, #77e4c8);
+        border-image-slice: 1; 
+        padding: 25px;
+        padding-top: 5px;
+        border-radius: 25px;
+        width: 25vw;
+        margin-top:10px;
     }
 </style>
-
