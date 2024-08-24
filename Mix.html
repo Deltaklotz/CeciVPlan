@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alcohol-Free Cocktail Recipes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        #searchBar {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .recipe {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .recipe h2 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .recipe p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Alcohol-Free Cocktail Recipes</h1>
+    <input type="text" id="searchBar" onkeyup="searchFunction()" placeholder="Search by ingredients...">
+
+    <div id="recipeList">
+        <div class="recipe" data-ingredients="orange juice, pineapple juice, grapefruit juice, lemon juice, raspberries">
+            <h2>Sunset Citrus Cooler</h2>
+            <p><strong>Ingredients:</strong> 1/4 cup Orange juice, 1/4 cup Pineapple juice, 1/4 cup Grapefruit juice, 2 tbsp Lemon juice, 3-4 Ice cubes, 3-4 Fresh raspberries (for garnish)</p>
+        </div>
+
+        <div class="recipe" data-ingredients="coconut-pineapple juice, strawberry juice, lemon juice, grapes">
+            <h2>Tropical Berry Bliss</h2>
+            <p><strong>Ingredients:</strong> 1/2 cup Coconut-pineapple juice, 1/4 cup Strawberry juice, 1/4 cup Lemon juice, 5-6 Fresh grapes (sliced in half), 3-4 Ice cubes</p>
+        </div>
+
+        <div class="recipe" data-ingredients="lemon juice, raspberry juice, water, raspberries">
+            <h2>Berry Burst Lemonade</h2>
+            <p><strong>Ingredients:</strong> 1/3 cup Lemon juice, 1/3 cup Raspberry juice, 1/3 cup Water, 5 Fresh raspberries, 2-3 Ice cubes</p>
+        </div>
+
+        <div class="recipe" data-ingredients="banana juice, pineapple juice, orange juice, grapes">
+            <h2>Banana Pineapple Punch</h2>
+            <p><strong>Ingredients:</strong> 1/2 cup Banana juice, 1/2 cup Pineapple juice, 1/4 cup Orange juice, 2-3 Fresh grapes (for garnish), 3-4 Ice cubes</p>
+        </div>
+
+        <div class="recipe" data-ingredients="strawberry juice, orange juice, lemon juice, sparkling water, raspberries">
+            <h2>Strawberry Citrus Fizz</h2>
+            <p><strong>Ingredients:</strong> 1/2 cup Strawberry juice, 1/4 cup Orange juice, 1/4 cup Lemon juice, 1/3 cup Sparkling water, 3-4 Ice cubes, 3-4 Fresh raspberries (for garnish)</p>
+        </div>
+
+        <div class="recipe" data-ingredients="raspberry juice, pineapple juice, coconut-pineapple juice, water, grapes">
+            <h2>Raspberry Pineapple Splash</h2>
+            <p><strong>Ingredients:</strong> 1/3 cup Raspberry juice, 1/3 cup Pineapple juice, 1/4 cup Coconut-pineapple juice, 1/4 cup Water, 5-6 Fresh grapes, 3-4 Ice cubes</p>
+        </div>
+
+        <div class="recipe" data-ingredients="grapefruit juice, lemon juice, strawberry juice, water, raspberries">
+            <h2>Citrus Berry Fusion</h2>
+            <p><strong>Ingredients:</strong> 1/4 cup Grapefruit juice, 1/4 cup Lemon juice, 1/4 cup Strawberry juice, 1/4 cup Water, 3 Fresh raspberries, 2-3 Ice cubes</p>
+        </div>
+
+        <div class="recipe" data-ingredients="pineapple juice, lemon juice, coconut-pineapple juice, raspberries">
+            <h2>Pineapple Lemon Refresher</h2>
+            <p><strong>Ingredients:</strong> 1/2 cup Pineapple juice, 1/4 cup Lemon juice, 1/4 cup Coconut-pineapple juice, 3-4 Ice cubes, 2 Fresh raspberries (for garnish)</p>
+        </div>
+
+        <div class="recipe" data-ingredients="banana juice, raspberry juice, strawberry juice, water, grapes">
+            <h2>Banana Berry Breeze</h2>
+            <p><strong>Ingredients:</strong> 1/2 cup Banana juice, 1/4 cup Raspberry juice, 1/4 cup Strawberry juice, 1/4 cup Water, 3 Fresh grapes (for garnish), 3-4 Ice cubes</p>
+        </div>
+
+        <div class="recipe" data-ingredients="coconut-pineapple juice, grape juice, lemon juice, grapes">
+            <h2>Coco-Grape Delight</h2>
+            <p><strong>Ingredients:</strong> 1/3 cup Coconut-pineapple juice, 1/3 cup Grape juice, 1/3 cup Lemon juice, 3-4 Ice cubes, 3-4 Fresh grapes (for garnish)</p>
+        </div>
+
+        <div class="recipe" data-ingredients="strawberry juice, pineapple juice, lemon juice, sparkling water, raspberries">
+            <h2>Strawberry Pineapple Pop</h2>
+            <p><strong>Ingredients:</strong> 1/2 cup Strawberry juice, 1/2 cup Pineapple juice, 1/4 cup Lemon juice, 1/3 cup Sparkling water, 3-4 Ice cubes, 2-3 Fresh raspberries (for garnish)</p>
+        </div>
+
+        <div class="recipe" data-ingredients="raspberry juice, orange juice, lemon juice, grapes">
+            <h2>Raspberry Citrus Cooler</h2>
+            <p><strong>Ingredients:</strong> 1/3 cup Raspberry juice, 1/3 cup Orange juice, 1/3 cup Lemon juice, 3-4 Ice cubes, 2-3 Fresh grapes (for garnish)</p>
+        </div>
+    </div>
+
+    <script>
+        function searchFunction() {
+            var input, filter, recipeList, recipes, i, txtValue;
+            input = document.getElementById('searchBar');
+            filter = input.value.toLowerCase();
+            recipeList = document.getElementById("recipeList");
+            recipes = recipeList.getElementsByClassName('recipe');
+
+            for (i = 0; i < recipes.length; i++) {
+                txtValue = recipes[i].getAttribute('data-ingredients');
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    recipes[i].style.display = "";
+                } else {
+                    recipes[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
