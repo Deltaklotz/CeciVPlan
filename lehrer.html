@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absent Teachers</title>
+</head>
+<body>
+    <h1>Absent Teachers List</h1>
+    <input type="file" id="pdfInput" accept="application/pdf" />
+    <ul id="absentTeachers"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        document.getElementById('pdfInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const fileReader = new FileReader();
+                fileReader.onload = function() {
+                    const typedArray = new Uint8Array(this.result);
+                    extractTeachers(typedArray);
+                };
+                fileReader.readAsArrayBuffer(file);
+            }
+        });
+
+        async function extractTeachers(pdfData) {
+            const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+            const pdf = await loadingTask.promise;
+            let textContent = "";
+
+            // Extract text from each page
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const text = await page.getTextContent();
+                text.items.forEach(item => {
+                    textContent += item.str + " ";
+                });
+            }
+
+            // Extract columns for Leh and Vert
+            const teacherLines = textContent.split("\n").filter(line => line.includes("Leh"));
+            const lehTeachers = [];
+            const vertTeachers = [];
+
+            teacherLines.forEach(line => {
+                const parts = line.split(/\s+/); // Split by whitespace
+                const leh = parts[parts.length - 2]; // Assuming "Leh" is the second last
+                const vert = parts[parts.length - 1]; // Assuming "Vert" is last
+                if (leh) lehTeachers.push(leh);
+                if (vert) vertTeachers.push(vert);
+            });
+
+            // Find absent teachers
+            const absentTeachers = lehTeachers.filter(teacher => !vertTeachers.includes(teacher));
+
+            // Display absent teachers
+            const ul = document.getElementById('absentTeachers');
+            ul.innerHTML = ""; // Clear previous list
+            absentTeachers.forEach(teacher => {
+                const li = document.createElement('li');
+                li.textContent = teacher;
+                ul.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
