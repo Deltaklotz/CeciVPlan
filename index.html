@@ -1,9 +1,17 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vertretungsplan</title>
+    <title>Absent Teachers</title>
+</head>
+<body>
+    <h1>Absent Teachers List</h1>
+    <button id="fetchPDF">Fetch PDF for Today</button>
+    <ul id="absentTeachers"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
         function getFormattedDate(date) {
             var month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
@@ -11,139 +19,69 @@
             return day + "." + month;
         }
 
-        function redirectToPDF(date) {
+        function getPDFUrl(date) {
             var formattedDate = getFormattedDate(date);
-            var pdfUrl = "https://www.ceciliengymnasium.de/attachments/article/1512/Vertretungsplan_" + formattedDate + ".2024.pdf";
-            window.location.href = pdfUrl;
+            return "https://www.ceciliengymnasium.de/attachments/article/1512/Vertretungsplan_" + formattedDate + ".2024.pdf";
         }
 
-        function viewToday() {
-            var today = new Date();
-            redirectToPDF(today);
-        }
+        document.getElementById('fetchPDF').addEventListener('click', async function () {
+            const today = new Date();
+            const pdfUrl = getPDFUrl(today);
 
-        function viewTomorrow() {
-            var tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            redirectToPDF(tomorrow);
-        }
+            try {
+                const response = await fetch(pdfUrl);
+                if (!response.ok) {
+                    alert("Failed to fetch the PDF. Please check the URL or try again later.");
+                    return;
+                }
 
-        function viewSpecificDate() {
-            var month = document.getElementById("month").value.padStart(2, '0');
-            var day = document.getElementById("day").value.padStart(2, '0');
-            var specificDate = new Date(new Date().getFullYear(), month - 1, day); // Year is set to current
-            redirectToPDF(specificDate);
+                const pdfData = await response.arrayBuffer();
+                extractTeachers(new Uint8Array(pdfData));
+            } catch (error) {
+                console.error("Error fetching PDF:", error);
+                alert("An error occurred while fetching the PDF.");
+            }
+        });
+
+        async function extractTeachers(pdfData) {
+            const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+            const pdf = await loadingTask.promise;
+            let textContent = "";
+
+            // Extract text from each page
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const text = await page.getTextContent();
+                text.items.forEach(item => {
+                    textContent += item.str + " ";
+                });
+            }
+
+            // Extract columns for Leh and Vert
+            const teacherLines = textContent.split("\n").filter(line => line.includes("Leh"));
+            const lehTeachers = [];
+            const vertTeachers = [];
+
+            teacherLines.forEach(line => {
+                const parts = line.split(/\s+/); // Split by whitespace
+                const leh = parts[parts.length - 2]; // Assuming "Leh" is the second last
+                const vert = parts[parts.length - 1]; // Assuming "Vert" is last
+                if (leh) lehTeachers.push(leh);
+                if (vert) vertTeachers.push(vert);
+            });
+
+            // Find absent teachers
+            const absentTeachers = lehTeachers.filter(teacher => !vertTeachers.includes(teacher));
+
+            // Display absent teachers
+            const ul = document.getElementById('absentTeachers');
+            ul.innerHTML = ""; // Clear previous list
+            absentTeachers.forEach(teacher => {
+                const li = document.createElement('li');
+                li.textContent = teacher;
+                ul.appendChild(li);
+            });
         }
     </script>
-</head>
-
-<body>
-<center>
-    <h1>ceci vplan viewer</h1>
-    <button onclick="viewToday()">Heute</button>
-    <button onclick="viewTomorrow()">Morgen</button>
-
-    <div class="option-div">
-    <h2>Tag eingeben:</h2>
-    <input type="number" id="day" min="1" max="31" placeholder="Tag">
-    <input type="number" id="month" min="1" max="12" placeholder="Monat">
-    <br/>
-    
-    
-    <button style="width: 100%; height: 15%; margin: 0;" onclick="viewSpecificDate()">Los</button>
-</div>
 </body>
-
 </html>
-<style>
-    body {
-        background-color: #121212;
-        color: #E0E0E0;
-        font-family: Arial, sans-serif;
-        display: flex;
-        height: 100vh;
-        margin: 0;
-        text-align: center;
-        align-items:center;
-        justify-content: center;
-    }
-
-    h2 {
-        margin-bottom: 0px;
-    }
-
-    input {
-        background-color: #1E1E1E;
-        color: #E0E0E0;
-        border: none;
-        padding: 10px 20px;
-        margin-top: 10px;
-        margin-bottom: 10px;
-        border-radius: 25px;
-        font-size: 16px;
-        cursor: pointer;
-        height: 5%;
-    }
-
-    button:hover, input:hover {
-        background-color: #333333;
-    }
-
-    input[type="number"] {
-        width: 60px;
-        text-align: center;
-    }
-
-    label {
-        margin-right: 0px;
-    }
-
-    @media (orientation: landscape){
-    .option-div {
-        background: linear-gradient(to right bottom, #4535c1, #334ac9, #255cce, #206cd1, #2c7ad1, #0389d7, #0098d9, #07a5da, #00b7db, #19c7d7, #4dd6d0, #77e4c8);
-        border-image-slice: 1; 
-        padding: 25px;
-        padding-top: 5px;
-        border-radius: 25px;
-        width: 25vw;
-        margin-top:10px;
-    }
-
-    button {
-        background-color: #1E1E1E;
-        color: #E0E0E0;
-        border: none;
-        padding: 1vw 20px;
-        margin: 0.5vw;
-        border-radius: 25px;
-        font-size: 16px;
-        cursor: pointer;
-        height: 13vh;
-        width: 13.75vw;
-    }
-    }
-    @media (orientation: portrait){
-    .option-div {
-        background: linear-gradient(to right bottom, #4535c1, #334ac9, #255cce, #206cd1, #2c7ad1, #0389d7, #0098d9, #07a5da, #00b7db, #19c7d7, #4dd6d0, #77e4c8);
-        border-image-slice: 1; 
-        padding: 25px;
-        padding-top: 5px;
-        border-radius: 25px;
-        width: 65vw;
-        margin-top:10px;
-    }
-
-    button {
-        background-color: #1E1E1E;
-        color: #E0E0E0;
-        border: none;
-        padding: 1vw 20px;
-        margin: 0.5vw;
-        border-radius: 25px;
-        font-size: 16px;
-        cursor: pointer;
-        height: 13vh;
-        width: 36.75vw;
-    }
-    }
-</style>
