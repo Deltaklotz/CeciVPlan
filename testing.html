@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertretungsplan</title>
+    <script>
+        function getFormattedDate(date) {
+            var month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+            var day = String(date.getDate()).padStart(2, '0');
+            return day + "." + month;
+        }
+
+        function redirectToPDF(date, teacher, classInput) {
+            var formattedDate = getFormattedDate(date);
+            var pdfUrl = `https://www.ceciliengymnasium.de/attachments/article/1512/Vertretungsplan_${formattedDate}.2024.pdf`;
+
+            if (teacher || classInput) {
+                alert(`Filter for Teacher: ${teacher || 'None'} and Class: ${classInput || 'None'}`);
+                // Implement actual filtering logic here, e.g., integrating PDF.js or a server-side process
+            } else {
+                window.location.href = pdfUrl;
+            }
+        }
+
+        function viewToday() {
+            var teacher = document.getElementById("teacher").value.trim();
+            var classInput = document.getElementById("class").value.trim();
+            var today = new Date();
+            redirectToPDF(today, teacher, classInput);
+        }
+
+        function viewTomorrow() {
+            var teacher = document.getElementById("teacher").value.trim();
+            var classInput = document.getElementById("class").value.trim();
+            var tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            redirectToPDF(tomorrow, teacher, classInput);
+        }
+
+        function viewSpecificDate() {
+            var month = document.getElementById("month").value.padStart(2, '0');
+            var day = document.getElementById("day").value.padStart(2, '0');
+            var teacher = document.getElementById("teacher").value.trim();
+            var classInput = document.getElementById("class").value.trim();
+            var specificDate = new Date(new Date().getFullYear(), month - 1, day); // Year is set to current
+            redirectToPDF(specificDate, teacher, classInput);
+        }
+
+        function toggleAdvancedOptions() {
+            var options = document.getElementById("advanced-options");
+            options.style.display = options.style.display === "none" ? "block" : "none";
+        }
+    </script>
+</head>
+
+<body>
+<center>
+    <h1>ceci vplan viewer</h1>
+    <button onclick="viewToday()">Heute</button>
+    <button onclick="viewTomorrow()">Morgen</button>
+
+    <button onclick="toggleAdvancedOptions()">Advanced Options</button>
+    <div id="advanced-options" style="display: none; margin-top: 20px;">
+        <h2>Filter by Date:</h2>
+        <input type="number" id="day" min="1" max="31" placeholder="Tag">
+        <input type="number" id="month" min="1" max="12" placeholder="Monat">
+        <br/>
+
+        <h2>Filter by Teacher:</h2>
+        <input type="text" id="teacher" placeholder="Lehrer">
+
+        <h2>Filter by Class:</h2>
+        <input type="text" id="class" placeholder="Klasse">
+        <br/>
+
+        <button style="width: 100%; margin-top: 10px;" onclick="viewSpecificDate()">Los</button>
+    </div>
+</center>
+</body>
+
+<style>
+    body {
+        background-color: #121212;
+        color: #E0E0E0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    input, button {
+        margin: 5px;
+        padding: 10px;
+        border-radius: 5px;
+        border: none;
+    }
+
+    button:hover, input:hover {
+        background-color: #333333;
+    }
+
+    #advanced-options {
+        background-color: #1E1E1E;
+        padding: 20px;
+        border-radius: 10px;
+    }
+</style>
+</html>
