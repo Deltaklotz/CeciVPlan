@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+body { background:#111; color:#ddd; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; padding:20px; }
+#chartWrapper { width:90vw; max-width:500px; aspect-ratio:1/1; position:relative; margin-bottom:20px; }
+#currentPos { position:absolute; top:10px; right:10px; font-size:24px; font-weight:bold; color:grey; }
+#buttons { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:20px; }
+button { padding:10px; font-size:18px; border:none; border-radius:5px; cursor:pointer; color:#fff; }
+button#plus { background:lime; color:#000; }
+button#minus { background:red; }
+button#zero { background:grey; }
+button#clear { background:#444; }
+#dataBox { word-break:break-all; margin-bottom:10px; width:90vw; max-width:500px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div id="chartWrapper">
+  <div id="myChart" style="width:100%;height:100%;"></div>
+  <div id="currentPos">0</div>
+</div>
+<div id="dataBox"></div>
+
+<div id="buttons">
+  <button id="plus" onclick="addSymbol('+')">+</button>
+  <button id="zero" onclick="addSymbol('0')">0</button>
+  <button id="minus" onclick="addSymbol('-')">-</button>
+  <button id="clear" onclick="clearData()">Clear</button>
+</div>
+
+<script>
+let dataString = localStorage.getItem('graphData') || "";
+document.getElementById("dataBox").textContent = dataString;
+
+function addSymbol(sym){
+    dataString += sym;
+    localStorage.setItem('graphData', dataString);
+    document.getElementById("dataBox").textContent = dataString;
+    drawChart();
+}
+
+function clearData(){
+    if(confirm("Are you sure you want to clear the graph?")){
+        dataString = "";
+        localStorage.removeItem('graphData');
+        document.getElementById("dataBox").textContent = "";
+        drawChart();
+    }
+}
+
+function drawChart(){
+    const arr = dataString.split("");
+    let y = 0;
+    const ys = [];
+    const xs = [];
+    arr.forEach((v,i)=> {
+        if(v === '+') y+=1;
+        else if(v==='-') y-=1;
+        xs.push(i);
+        ys.push(y);
+    });
+
+    // build segments for coloring lines
+    const traces = [];
+    if(xs.length>0){
+        let segX=[xs[0]];
+        let segY=[ys[0]];
+        let last = arr[0]==='+'?1:arr[0]==='-'?-1:0;
+        for(let i=1;i<xs.length;i++){
+            let dir = arr[i]==='+'?1:arr[i]==='-'?-1: last;
+            if(dir !== last){
+                // finish current segment
+                traces.push({
+                    x: segX,
+                    y: segY,
+                    mode:'lines',
+                    line:{color:last===1?'green':last===-1?'red':'grey', width:4},
+                    hoverinfo:'skip'
+                });
+                // start new segment
+                segX=[xs[i-1], xs[i]];
+                segY=[ys[i-1], ys[i]];
+                last = dir;
+            }else{
+                segX.push(xs[i]);
+                segY.push(ys[i]);
+            }
+        }
+        // push last segment
+        traces.push({
+    x: segX,
+    y: segY,
+    mode:'lines',
+    line:{color:last===1?'green':last===-1?'red':'grey', width:4},
+    hoverinfo:'skip',
+    showlegend:false  // hide this trace in the legend
+});
+    }
+
+    const layout = {
+    plot_bgcolor: '#000',
+    paper_bgcolor: '#000',
+    xaxis: { showgrid:false, zeroline:false },
+    yaxis: { showgrid:true, zeroline:true, gridcolor:'#333', zerolinecolor:'#555' },
+    margin: { t:20, b:40, l:40, r:40 },
+    showlegend: false // hide any legend globally
+};
+
+
+    Plotly.newPlot('myChart', traces, layout, {responsive:true});
+
+    const current = ys.length ? ys[ys.length-1] : 0;
+    const posEl = document.getElementById("currentPos");
+    posEl.textContent = current;
+    posEl.style.color = current>0?'lime':current<0?'red':'grey';
+}
+
+drawChart();
+</script>
+
+</body>
+</html>
