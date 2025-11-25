@@ -9,7 +9,6 @@ body { background:#111; color:#ddd; font-family:sans-serif; display:flex; flex-d
 
 #chartWrapper {
     width:90vw;
-    max-width:600px;
     aspect-ratio:1/1;
     position:relative;
     margin-bottom:10px;
@@ -30,8 +29,20 @@ body { background:#111; color:#ddd; font-family:sans-serif; display:flex; flex-d
     flex-wrap:wrap;
     justify-content:center;
     width:90vw;
-    max-width:600px;
+    height: 15vw;
+    min-height: 100px;
     margin-bottom:10px;
+}
+
+button {
+    flex:1;
+    min-width:60px;
+    padding:10px;
+    font-size:16px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    color:#fff;
 }
 
 button {
