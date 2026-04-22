@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Real8 — Card Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;
+  --line:rgba(255,255,255,0.08);
+  --line-2:rgba(255,255,255,0.14);
+  --text:#f2f2f2;
+  --text-2:rgba(255,255,255,0.55);
+  --muted:rgba(255,255,255,0.32);
+  --accent-a:#FF6B00;
+  --accent-b:#FFE000;
+  --accent-grad:linear-gradient(110deg,#FF6B00,#FFE000);
+  --font:'Space Grotesk',sans-serif;
+}
+
+html,body{
+  background:var(--bg);
+  min-height:100vh;
+  font-family:var(--font);
+  -webkit-font-smoothing:antialiased;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px 20px;
+  overflow-x:hidden;
+}
+
+.stage{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:32px;
+  width:100%;
+  max-width:300px;
+}
+
+.wordmark{
+  font-size:11px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--text-2);
+  display:flex;align-items:center;gap:8px;
+}
+.wordmark-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--accent-grad);
+}
+
+/* ── 3D perspective wrapper ── */
+.card-perspective{
+  width:100%;
+  perspective:1200px;
+  perspective-origin:50% 50%;
+  /* give the dragging room to breathe vertically */
+  padding:10px 0;
+}
+
+/* ── Card ── */
+.photo-card{
+  width:100%;
+  border-radius:32px;
+  padding:16px;
+  position:relative;
+  overflow:hidden;
+  /* 3D transform target */
+  transform-style:preserve-3d;
+  transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+  transition:background 0.45s cubic-bezier(.4,0,.2,1), transform 0.2s cubic-bezier(.25,.1,.25,1), box-shadow 0.3s ease;
+  cursor:grab;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:none;
+  /* dynamic shadow follows the tilt */
+  box-shadow:
+    calc(var(--ry,0deg) / 30deg * -14px) calc(var(--rx,0deg) / 30deg * 14px + 32px) 64px rgba(0,0,0,.72);
+  will-change:transform;
+}
+.photo-card.dragging{
+  cursor:grabbing;
+  transition:background 0.45s cubic-bezier(.4,0,.2,1), box-shadow 0.3s ease;
+}
+
+/* gradient fill (no ::before needed for tint) */
+.photo-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(120% 60% at 50% 100%, rgba(255,255,255,.12), transparent 60%);
+  pointer-events:none;
+  border-radius:inherit;
+}
+.photo-card::after{
+  content:'';position:absolute;inset:0;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06) 0%, transparent 18%),
+    radial-gradient(90% 50% at 50% 0%, rgba(255,255,255,.18), transparent 70%);
+  pointer-events:none;
+  border-radius:inherit;
+}
+
+/* ── Inset Pokémon-style border ─── */
+.card-border{
+  position:absolute;
+  inset:6px;                 /* ~2% inset */
+  border-radius:26px;
+  pointer-events:none;
+  z-index:3;
+  /* darker outline + subtle inner highlight for depth */
+  box-shadow:
+    inset 0 0 0 1.5px rgba(0,0,0,.35),
+    inset 0 0 0 2.5px rgba(255,255,255,.08),
+    inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+/* ── Dynamic shine layer (tracks tilt) ─── */
+.card-shine{
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:4;
+  background:linear-gradient(
+    var(--shine-angle,120deg),
+    transparent 30%,
+    rgba(255,255,255,var(--shine-opacity,0)) 48%,
+    rgba(255,255,255,calc(var(--shine-opacity,0) * 1.4)) 50%,
+    rgba(255,255,255,var(--shine-opacity,0)) 52%,
+    transparent 70%
+  );
+  mix-blend-mode:overlay;
+  transition:opacity .3s ease;
+}
+
+/* holographic accent shine (rarity-tinted, subtler) */
+.card-holo{
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:4;
+  background:radial-gradient(
+    ellipse 60% 100% at var(--holo-x,50%) var(--holo-y,50%),
+    rgba(255,255,255,.18) 0%,
+    rgba(255,255,255,.06) 30%,
+    transparent 60%
+  );
+  mix-blend-mode:soft-light;
+  opacity:.9;
+}
+
+.photo-grid-overlay{
+  position:absolute;inset:0;
+  pointer-events:none;
+  opacity:.14;
+  mix-blend-mode:overlay;
+  width:100%;height:100%;
+  z-index:1;
+}
+
+.card-top-row{
+  position:relative;z-index:2;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:4px 6px 12px;
+}
+.rarity-chip{
+  display:flex;align-items:center;gap:6px;
+  font-size:10px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:rgba(255,255,255,.9);
+}
+.rarity-chip .pip{
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(255,255,255,.9);
+  box-shadow:0 0 10px rgba(255,255,255,.7);
+}
+.card-id{
+  font-size:10px;font-weight:500;
+  color:rgba(255,255,255,.55);
+  letter-spacing:.1em;
+}
+
+.photo-inner{
+  border-radius:20px;overflow:hidden;
+  aspect-ratio:3/4;background:#0a0a0a;
+  position:relative;z-index:2;
+  box-shadow:0 8px 24px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.photo-inner svg{width:100%;height:100%;display:block}
+
+.card-bottom-row{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;gap:6px;
+  padding:16px 6px 4px;
+}
+.caption-preview{
+  font-size:13px;font-weight:500;
+  color:rgba(255,255,255,.85);
+  letter-spacing:-.01em;line-height:1.35;
+}
+.meta{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:10px;color:rgba(255,255,255,.55);
+  letter-spacing:.08em;text-transform:uppercase;
+}
+
+/* ── Tilt hint (shows on load, fades out) ─── */
+.tilt-hint{
+  font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--muted);
+  display:flex;align-items:center;gap:8px;
+  animation:hintFade 4s ease-out forwards;
+  animation-delay:2s;
+}
+.tilt-hint svg{opacity:.6}
+@keyframes hintFade{
+  to{opacity:0;transform:translateY(-4px)}
+}
+
+/* ── Switcher ─── */
+.switcher{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.swatch-btn{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 15px;
+  border-radius:100px;
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--text-2);
+  font-family:var(--font);
+  font-size:11px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;
+  transition:border-color .2s, color .2s, background .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.swatch-btn .swatch{
+  width:9px;height:9px;border-radius:50%;
+  flex-shrink:0;
+}
+.swatch-btn:hover{
+  border-color:var(--line-2);
+  color:var(--text);
+}
+.swatch-btn.active{
+  border-color:rgba(255,255,255,.3);
+  color:var(--text);
+  background:rgba(255,255,255,.05);
+}
+
+/* ── Entry animation ─── */
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(18px) scale(.96)}
+  to  {opacity:1;transform:translateY(0)    scale(1)}
+}
+.card-perspective{animation:cardIn .5s cubic-bezier(.2,0,.1,1) both}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="wordmark">
+    <span class="wordmark-dot"></span>
+    Real8 Card Preview
+  </div>
+
+  <div class="card-perspective">
+    <div class="photo-card" id="card">
+
+      <!-- Meridian grid injected by JS -->
+
+      <div class="card-top-row">
+        <div class="rarity-chip"><span class="pip"></span><span id="lbl-rarity">Common</span></div>
+        <div class="card-id">#2741</div>
+      </div>
+
+      <div class="photo-inner">
+        <svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#080712"/>
+              <stop offset="55%"  stop-color="#14103a"/>
+              <stop offset="100%" stop-color="#2a1a4e"/>
+            </linearGradient>
+            <radialGradient id="moonGlow" cx="68%" cy="20%" r="38%">
+              <stop offset="0%"  stop-color="#b0a0ff" stop-opacity=".22"/>
+              <stop offset="100%" stop-color="#b0a0ff" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="moonSurf" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stop-color="#fffff0"/>
+              <stop offset="70%" stop-color="#ffeebb"/>
+              <stop offset="100%" stop-color="#e8d080"/>
+            </radialGradient>
+            <linearGradient id="mtnA" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"  stop-color="#2a1e50"/>
+              <stop offset="100%" stop-color="#150f30"/>
+            </linearGradient>
+            <linearGradient id="mtnB" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"  stop-color="#1a1238"/>
+              <stop offset="100%" stop-color="#0c0920"/>
+            </linearGradient>
+            <linearGradient id="mtnC" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"  stop-color="#10091c"/>
+              <stop offset="100%" stop-color="#07050f"/>
+            </linearGradient>
+            <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"  stop-color="#18123a"/>
+              <stop offset="100%" stop-color="#060410"/>
+            </linearGradient>
+            <radialGradient id="reflGlow" cx="68%" cy="0%" r="60%">
+              <stop offset="0%"  stop-color="#fffde0" stop-opacity=".45"/>
+              <stop offset="100%" stop-color="#fffde0" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="vig" cx="50%" cy="50%" r="68%">
+              <stop offset="0%"   stop-color="black" stop-opacity="0"/>
+              <stop offset="100%" stop-color="black" stop-opacity=".52"/>
+            </radialGradient>
+            <filter id="soft"><feGaussianBlur stdDeviation="2.5"/></filter>
+            <filter id="softer"><feGaussianBlur stdDeviation="5"/></filter>
+            <filter id="crisp"><feGaussianBlur stdDeviation="0.6"/></filter>
+          </defs>
+
+          <rect width="300" height="400" fill="url(#sky)"/>
+          <ellipse cx="204" cy="80" rx="90" ry="90" fill="url(#moonGlow)" filter="url(#softer)"/>
+
+          <g fill="white">
+            <circle cx="18"  cy="14"  r="0.9"/>
+            <circle cx="52"  cy="28"  r="0.7"/>
+            <circle cx="88"  cy="10"  r="1.1" opacity=".9"/>
+            <circle cx="128" cy="38"  r="0.5"/>
+            <circle cx="40"  cy="54"  r="0.8" opacity=".8"/>
+            <circle cx="165" cy="18"  r="0.9" opacity=".85"/>
+            <circle cx="242" cy="36"  r="0.6"/>
+            <circle cx="272" cy="12"  r="1.2" opacity=".9"/>
+            <circle cx="14"  cy="78"  r="0.6"/>
+            <circle cx="76"  cy="72"  r="0.9" opacity=".75"/>
+            <circle cx="115" cy="60"  r="0.7"/>
+            <circle cx="254" cy="66"  r="0.8" opacity=".8"/>
+            <circle cx="36"  cy="98"  r="0.6"/>
+            <circle cx="148" cy="82"  r="0.6" opacity=".7"/>
+            <circle cx="186" cy="50"  r="0.8" opacity=".8"/>
+            <circle cx="220" cy="22"  r="0.7"/>
+            <circle cx="98"  cy="42"  r="0.5" opacity=".6"/>
+            <circle cx="290" cy="55"  r="0.9"/>
+          </g>
+
+          <g filter="url(#soft)" opacity=".28">
+            <ellipse cx="90"  cy="62" rx="130" ry="20" fill="#38ffa8" transform="rotate(-7,90,62)"/>
+            <ellipse cx="180" cy="48" rx="110" ry="13" fill="#8899ff" transform="rotate(4,180,48)"/>
+            <ellipse cx="55"  cy="85" rx="80"  ry="10" fill="#ff78cc" transform="rotate(-11,55,85)"/>
+          </g>
+
+          <path d="M0,205 L28,158 L58,178 L88,132 L125,162 L158,118 L195,150 L232,122 L265,148 L300,130 L300,222 L0,222Z" fill="url(#mtnA)"/>
+          <path d="M88,132 L100,148 L76,148Z"  fill="rgba(255,255,255,.18)"/>
+          <path d="M158,118 L170,136 L146,136Z" fill="rgba(255,255,255,.22)"/>
+          <path d="M232,122 L244,140 L220,140Z" fill="rgba(255,255,255,.18)"/>
+
+          <path d="M0,242 L22,200 L50,218 L80,176 L112,200 L145,160 L178,188 L212,168 L248,194 L278,172 L300,185 L300,250 L0,250Z" fill="url(#mtnB)"/>
+          <path d="M145,160 L157,178 L133,178Z" fill="rgba(255,255,255,.24)"/>
+          <path d="M212,168 L223,184 L201,184Z" fill="rgba(255,255,255,.2)"/>
+
+          <path d="M0,288 L18,255 L46,272 L76,242 L108,265 L148,245 L185,262 L220,246 L258,268 L288,250 L300,258 L300,292 L0,292Z" fill="url(#mtnC)"/>
+
+          <g fill="#07050f">
+            <polygon points="24,272  28,256  32,272"/>
+            <polygon points="32,270  36,255  40,270"/>
+            <polygon points="58,274  62,259  66,274"/>
+            <polygon points="250,268 254,253 258,268"/>
+            <polygon points="265,262 269,248 273,262"/>
+            <polygon points="280,256 284,243 288,256"/>
+          </g>
+
+          <rect x="0" y="292" width="300" height="108" fill="url(#lake)"/>
+          <ellipse cx="204" cy="292" rx="50" ry="6" fill="url(#reflGlow)" filter="url(#soft)"/>
+          <rect x="200" y="298" width="8" height="60" fill="rgba(255,253,210,.18)" filter="url(#crisp)"/>
+          <ellipse cx="204" cy="300" rx="10" ry="3" fill="rgba(255,253,210,.3)"/>
+
+          <g stroke="rgba(255,255,255,.09)" stroke-width="0.5" fill="none">
+            <line x1="0" y1="305" x2="300" y2="305"/>
+            <line x1="0" y1="318" x2="300" y2="318"/>
+            <line x1="0" y1="333" x2="300" y2="333"/>
+            <line x1="0" y1="350" x2="300" y2="350"/>
+            <line x1="0" y1="368" x2="300" y2="368"/>
+          </g>
+
+          <circle cx="204" cy="80" r="20" fill="url(#moonSurf)"/>
+          <circle cx="198" cy="74" r="3.5" fill="rgba(0,0,0,.06)"/>
+          <circle cx="208" cy="84" r="2.5" fill="rgba(0,0,0,.05)"/>
+          <circle cx="202" cy="88" r="1.8" fill="rgba(0,0,0,.04)"/>
+
+          <rect width="300" height="400" fill="url(#vig)"/>
+        </svg>
+      </div>
+
+      <div class="card-bottom-row">
+        <div class="caption-preview">Golden hour at the summit</div>
+        <div class="meta">
+          <span>Real8 · <span id="lbl-date"></span></span>
+          <span>1/1</span>
+        </div>
+      </div>
+
+      <!-- Holographic hotspot (behind shine) -->
+      <div class="card-holo" id="holo"></div>
+      <!-- Linear shine (sweeps with tilt) -->
+      <div class="card-shine" id="shine"></div>
+      <!-- Inset border last so it sits on top -->
+      <div class="card-border"></div>
+    </div>
+  </div>
+
+  <div class="tilt-hint">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 9l7-7 7 7"/><path d="M5 15l7 7 7-7"/>
+    </svg>
+    Drag to tilt
+  </div>
+
+  <div class="switcher" id="switcher"></div>
+
+</div>
+
+<script>
+const RARITIES = [
+  {
+    label: 'Common',
+    swatch: '#7faf44',
+    bg: `
+      radial-gradient(130% 80% at 20% 10%, rgba(176,248,148,.7), transparent 55%),
+      radial-gradient(120% 80% at 90% 100%, rgba(255,240,140,.4), transparent 60%),
+      linear-gradient(155deg, #3d5c2e 0%, #5e8a3d 40%, #7faf44 100%)
+    `
+  },
+  {
+    label: 'Rare',
+    swatch: '#6e8cf0',
+    bg: `
+      radial-gradient(120% 80% at 15% 15%, rgba(140,178,255,.65), transparent 55%),
+      radial-gradient(120% 80% at 85% 95%, rgba(88,150,255,.45), transparent 60%),
+      linear-gradient(155deg, #2a3b78 0%, #4967c9 45%, #6e8cf0 100%)
+    `
+  },
+  {
+    label: 'Epic',
+    swatch: '#9f7adc',
+    bg: `
+      radial-gradient(130% 80% at 20% 10%, rgba(210,170,255,.7), transparent 55%),
+      radial-gradient(120% 80% at 95% 100%, rgba(160,120,240,.4), transparent 60%),
+      linear-gradient(155deg, #3e1a6b 0%, #6b3fa8 45%, #9f7adc 100%)
+    `
+  },
+  {
+    /* ── LEGENDARY: molten gold ─── */
+    label: 'Legendary',
+    swatch: '#ffd24a',
+    bg: `
+      radial-gradient(130% 80% at 20% 10%, rgba(255,235,150,.8), transparent 55%),
+      radial-gradient(120% 80% at 90% 100%, rgba(255,170,40,.55), transparent 60%),
+      linear-gradient(155deg, #6b3a08 0%, #c48418 40%, #ffd24a 100%)
+    `
+  },
+  {
+    /* ── MYTHIC: more saturated crimson ─── */
+    label: 'Mythic',
+    swatch: '#e62235',
+    bg: `
+      radial-gradient(130% 80% at 15% 15%, rgba(255,120,140,.75), transparent 55%),
+      radial-gradient(120% 80% at 90% 95%, rgba(255,60,40,.55), transparent 60%),
+      linear-gradient(155deg, #5a0512 0%, #b80820 40%, #e62235 100%)
+    `
+  },
+];
+
+/* Date label */
+document.getElementById('lbl-date').textContent =
+  new Date().toLocaleDateString('en-US',{day:'2-digit',month:'short'}).toUpperCase();
+
+/* Meridian grid */
+function buildGrid(){
+  const ns='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(ns,'svg');
+  svg.setAttribute('class','photo-grid-overlay');
+  svg.setAttribute('viewBox','0 0 300 400');
+  svg.setAttribute('preserveAspectRatio','none');
+  const defs=document.createElementNS(ns,'defs');
+  const rg=document.createElementNS(ns,'radialGradient');
+  rg.id='mgrid';
+  rg.setAttribute('cx','50%');rg.setAttribute('cy','60%');rg.setAttribute('r','60%');
+  const s0=document.createElementNS(ns,'stop');
+  s0.setAttribute('offset','0%');s0.setAttribute('stop-color','white');s0.setAttribute('stop-opacity','0.35');
+  const s1=document.createElementNS(ns,'stop');
+  s1.setAttribute('offset','100%');s1.setAttribute('stop-color','white');s1.setAttribute('stop-opacity','0');
+  rg.appendChild(s0);rg.appendChild(s1);defs.appendChild(rg);svg.appendChild(defs);
+  for(let i=0;i<11;i++){
+    const x=25+i*25,p=document.createElementNS(ns,'path');
+    p.setAttribute('d',`M ${x} 0 Q 150 200 ${x} 400`);
+    p.setAttribute('stroke','url(#mgrid)');p.setAttribute('fill','none');p.setAttribute('stroke-width','0.6');
+    svg.appendChild(p);
+  }
+  for(let i=0;i<7;i++){
+    const y=50+i*50,e=document.createElementNS(ns,'ellipse');
+    e.setAttribute('cx','150');e.setAttribute('cy',y);
+    e.setAttribute('rx',145-Math.abs(y-200)*0.4);e.setAttribute('ry',10+i*2);
+    e.setAttribute('stroke','url(#mgrid)');e.setAttribute('fill','none');e.setAttribute('stroke-width','0.4');
+    svg.appendChild(e);
+  }
+  return svg;
+}
+
+const card = document.getElementById('card');
+const shine = document.getElementById('shine');
+const holo = document.getElementById('holo');
+card.insertBefore(buildGrid(), card.firstChild);
+
+/* ── 3D tilt interaction ─── */
+const MAX_TILT = 25;      // degrees - within your 20-30 range
+const MAX_TILT_Y = 18;    // horizontal tilt slightly gentler
+
+let isDragging = false;
+let rx = 0, ry = 0;
+let targetRx = 0, targetRy = 0;
+
+function updateCard(){
+  card.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+  card.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+
+  /* shine: angle rotates with Y-tilt, opacity grows with overall tilt magnitude */
+  const tiltMag = Math.min(1, Math.sqrt(rx*rx + ry*ry) / MAX_TILT);
+  const shineOpacity = 0.15 + tiltMag * 0.45;
+  /* angle: 120° at rest, shifts as we tilt */
+  const shineAngle = 120 + (ry * 2) - (rx * 1.5);
+  shine.style.setProperty('--shine-opacity', shineOpacity.toFixed(3));
+  shine.style.setProperty('--shine-angle', shineAngle.toFixed(1) + 'deg');
+
+  /* holographic hotspot: follows the "light source" opposite of tilt */
+  const holoX = 50 - ry * 1.6;   // -1.6 so hotspot moves toward viewer's light
+  const holoY = 50 + rx * 1.6;
+  holo.style.setProperty('--holo-x', holoX.toFixed(1) + '%');
+  holo.style.setProperty('--holo-y', holoY.toFixed(1) + '%');
+}
+
+/* Smooth animation loop */
+function animate(){
+  /* spring toward target */
+  rx += (targetRx - rx) * 0.18;
+  ry += (targetRy - ry) * 0.18;
+  updateCard();
+  requestAnimationFrame(animate);
+}
+animate();
+
+/* ── Pointer events (works for mouse + touch) ─── */
+let startX = 0, startY = 0, startRx = 0, startRy = 0;
+
+function onPointerDown(e){
+  isDragging = true;
+  card.classList.add('dragging');
+  const p = 'touches' in e ? e.touches[0] : e;
+  startX = p.clientX;
+  startY = p.clientY;
+  startRx = targetRx;
+  startRy = targetRy;
+  card.setPointerCapture?.(e.pointerId);
+  e.preventDefault();
+}
+
+function onPointerMove(e){
+  if(!isDragging) return;
+  const p = 'touches' in e ? e.touches[0] : e;
+  const dx = p.clientX - startX;
+  const dy = p.clientY - startY;
+
+  /* drag up → card tips back (top goes away) → rotateX positive
+     drag down → card tips forward → rotateX negative */
+  const rect = card.getBoundingClientRect();
+  targetRx = Math.max(-MAX_TILT, Math.min(MAX_TILT, startRx - (dy / rect.height) * 60));
+  targetRy = Math.max(-MAX_TILT_Y, Math.min(MAX_TILT_Y, startRy + (dx / rect.width) * 40));
+  e.preventDefault();
+}
+
+function onPointerUp(){
+  if(!isDragging) return;
+  isDragging = false;
+  card.classList.remove('dragging');
+  /* spring back to rest */
+  targetRx = 0;
+  targetRy = 0;
+}
+
+/* Use pointer events for unified mouse/touch support */
+card.addEventListener('pointerdown', onPointerDown);
+window.addEventListener('pointermove', onPointerMove);
+window.addEventListener('pointerup', onPointerUp);
+window.addEventListener('pointercancel', onPointerUp);
+
+/* ── Switcher ─── */
+const switcher = document.getElementById('switcher');
+let current = 0;
+
+RARITIES.forEach((r,i)=>{
+  const btn = document.createElement('button');
+  btn.className = 'swatch-btn' + (i===0 ? ' active' : '');
+  btn.innerHTML = `<span class="swatch" style="background:${r.swatch}"></span>${r.label}`;
+  btn.addEventListener('click', ()=>{
+    if(i === current) return;
+    current = i;
+    card.style.background = r.bg;
+    document.getElementById('lbl-rarity').textContent = r.label;
+    switcher.querySelectorAll('.swatch-btn').forEach((b,j)=>b.classList.toggle('active', j===i));
+  });
+  switcher.appendChild(btn);
+});
+
+card.style.background = RARITIES[0].bg;
+
+/* ── Welcome demo: slight tilt wiggle on load to hint interactivity ─── */
+setTimeout(()=>{
+  targetRx = -8; targetRy = 6;
+  setTimeout(()=>{ targetRx = 6; targetRy = -5; }, 500);
+  setTimeout(()=>{ targetRx = 0; targetRy = 0; }, 1000);
+}, 400);
+</script>
+</body>
+</html>
