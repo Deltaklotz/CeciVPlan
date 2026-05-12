@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beeline Reader</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d14;
+    --bg2: #13131f;
+    --bg3: #1a1a2e;
+    --border: rgba(120, 100, 255, 0.15);
+    --text: #e8e6f0;
+    --muted: #7a7890;
+    --accent1: #4d6fff;
+    --accent2: #9b5de5;
+    --line-h: 1.9;
+    --font-size: 19px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 1.25rem 2rem;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 0.04em;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .control-group label { white-space: nowrap; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 80px;
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    outline: none;
+    border: 1px solid var(--border);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    cursor: pointer;
+  }
+
+  .val {
+    min-width: 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    height: calc(100vh - 65px);
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+  }
+  .panel:last-child { border-right: none; }
+
+  .panel-header {
+    padding: 0.75rem 1.5rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+  }
+
+  textarea {
+    flex: 1;
+    background: var(--bg2);
+    color: var(--text);
+    border: none;
+    resize: none;
+    padding: 1.75rem 2rem;
+    font-family: 'Lora', Georgia, serif;
+    font-size: var(--font-size);
+    line-height: var(--line-h);
+    outline: none;
+  }
+  textarea::placeholder { color: var(--muted); opacity: 0.6; }
+
+  #output {
+    flex: 1;
+    padding: 1.75rem 2rem;
+    overflow-y: auto;
+    background: var(--bg);
+    font-size: var(--font-size);
+    line-height: var(--line-h);
+    word-break: break-word;
+  }
+
+  .beeline-text {
+    white-space: pre-wrap;
+  }
+
+  .beeline-text span {
+    display: inline;
+  }
+
+  .empty-hint {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 15px;
+    opacity: 0.5;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 700px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; height: auto; }
+    .panel { border-right: none; border-bottom: 1px solid var(--border); min-height: 40vh; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">beeline reader</span>
+  <div class="controls">
+    <div class="control-group">
+      <label for="sz">Schriftgröße</label>
+      <input type="range" id="sz" min="14" max="28" value="19" step="1">
+      <span class="val" id="szVal">19px</span>
+    </div>
+    <div class="control-group">
+      <label for="lh">Zeilenabstand</label>
+      <input type="range" id="lh" min="14" max="28" value="19" step="1">
+      <span class="val" id="lhVal">1.9</span>
+    </div>
+    <div class="control-group">
+      <label for="sat">Sättigung</label>
+      <input type="range" id="sat" min="0" max="100" value="80" step="1">
+      <span class="val" id="satVal">80%</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="panel-header">Text eingeben</div>
+    <textarea id="input" placeholder="Text hier einfügen oder tippen…&#10;&#10;Beeline Reader färbt jede Zeile mit einem sanften Blau-Lila-Verlauf, damit deine Augen leichter von Zeile zu Zeile springen."></textarea>
+  </div>
+  <div class="panel">
+    <div class="panel-header">Beeline Ansicht</div>
+    <div id="output"><p class="empty-hint">Text links eingeben…</p></div>
+  </div>
+</main>
+
+<script>
+const input = document.getElementById('input');
+const output = document.getElementById('output');
+const szSlider = document.getElementById('sz');
+const lhSlider = document.getElementById('lh');
+const satSlider = document.getElementById('sat');
+const szVal = document.getElementById('szVal');
+const lhVal = document.getElementById('lhVal');
+const satVal = document.getElementById('satVal');
+
+const COLORS_BASE = [
+  [0x4d, 0x6f, 0xff],
+  [0x6a, 0x5a, 0xff],
+  [0x85, 0x47, 0xff],
+  [0x9b, 0x5d, 0xe5],
+  [0xb0, 0x74, 0xd4],
+  [0x7e, 0x5c, 0xf0],
+  [0x5c, 0x6e, 0xff],
+];
+
+function lerpColor(a, b, t) {
+  return [
+    Math.round(a[0] + (b[0] - a[0]) * t),
+    Math.round(a[1] + (b[1] - a[1]) * t),
+    Math.round(a[2] + (b[2] - a[2]) * t),
+  ];
+}
+
+function getColor(lineIndex, charIndex, lineLength, saturation) {
+  const cycle = COLORS_BASE.length;
+  const baseIdx = lineIndex % cycle;
+  const nextIdx = (lineIndex + 1) % cycle;
+  const lineProg = lineLength > 1 ? charIndex / (lineLength - 1) : 0;
+  const c = lerpColor(COLORS_BASE[baseIdx], COLORS_BASE[nextIdx], lineProg);
+  const s = saturation / 100;
+  const grey = c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114;
+  const blended = [
+    Math.round(grey + (c[0] - grey) * s),
+    Math.round(grey + (c[1] - grey) * s),
+    Math.round(grey + (c[2] - grey) * s),
+  ];
+  return `rgb(${blended[0]},${blended[1]},${blended[2]})`;
+}
+
+function render() {
+  const text = input.value;
+  const saturation = parseInt(satSlider.value);
+
+  if (!text.trim()) {
+    output.innerHTML = '<p class="empty-hint">Text links eingeben…</p>';
+    return;
+  }
+
+  const paragraphs = text.split(/\n/);
+  let lineCounter = 0;
+  let html = '<div class="beeline-text">';
+
+  for (let pi = 0; pi < paragraphs.length; pi++) {
+    const para = paragraphs[pi];
+    if (para.trim() === '') {
+      html += '<br>';
+      continue;
+    }
+
+    const words = para.split(/(\s+)/);
+    let lineHtml = '';
+    let lineLen = para.replace(/\s+/g, ' ').trim().length;
+    let ci = 0;
+
+    for (let wi = 0; wi < words.length; wi++) {
+      const word = words[wi];
+      if (/^\s+$/.test(word)) {
+        lineHtml += word;
+        ci += word.length;
+      } else {
+        let wHtml = '';
+        for (let i = 0; i < word.length; i++) {
+          const color = getColor(lineCounter, ci, lineLen, saturation);
+          wHtml += `<span style="color:${color}">${escChar(word[i])}</span>`;
+          ci++;
+        }
+        lineHtml += wHtml;
+      }
+    }
+    html += `<span>${lineHtml}</span>`;
+    html += (pi < paragraphs.length - 1 ? '<br>' : '');
+    lineCounter++;
+  }
+
+  html += '</div>';
+  output.innerHTML = html;
+}
+
+function escChar(c) {
+  if (c === '&') return '&amp;';
+  if (c === '<') return '&lt;';
+  if (c === '>') return '&gt;';
+  return c;
+}
+
+function updateFontSize() {
+  const v = szSlider.value;
+  szVal.textContent = v + 'px';
+  document.documentElement.style.setProperty('--font-size', v + 'px');
+  input.style.fontSize = v + 'px';
+}
+
+function updateLineHeight() {
+  const raw = parseInt(lhSlider.value);
+  const lh = (1.0 + (raw - 14) / (28 - 14) * 1.4).toFixed(1);
+  lhVal.textContent = lh;
+  document.documentElement.style.setProperty('--line-h', lh);
+  input.style.lineHeight = lh;
+}
+
+szSlider.addEventListener('input', updateLineHeight);
+lhSlider.addEventListener('input', updateLineHeight);
+
+szSlider.addEventListener('input', () => { updateFontSize(); render(); });
+lhSlider.addEventListener('input', () => { updateLineHeight(); render(); });
+satSlider.addEventListener('input', () => { satVal.textContent = satSlider.value + '%'; render(); });
+input.addEventListener('input', render);
+
+render();
+</script>
+</body>
+</html>
