@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertretungsplan</title>
+</head>
+
+<body>
+    <h1>die schule hat jetzt Authentifizierung für den Stundenplan und darum ist diese Seite nicht mehr zu retten.</h1>
+</br>
+  <h1>lebt wohl 😔✌️</h1>
+
+    <div class="card">
+        <div class="field">
+            <span class="label">Benutzername</span>
+            <div class="value-row">
+                <span class="value" id="username">Ceci</span>
+                <button class="copy-btn" onclick="copy('username', this)">kopieren</button>
+            </div>
+        </div>
+        <div class="field">
+            <span class="label">Passwort</span>
+            <div class="value-row">
+                <span class="value" id="password">Vplan20#3211</span>
+                <button class="copy-btn" onclick="copy('password', this)">kopieren</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="main-btn" onclick="window.open('https://www.ceciliengymnasium.de/vertretungsplan', '_blank')">
+        Zum Vertretungsplan →
+    </button>
+
+    <script>
+        function copy(id, btn) {
+            const text = document.getElementById(id).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = '✓';
+                setTimeout(() => btn.textContent = 'kopieren', 1500);
+            });
+        }
+    </script>
+</body>
+
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        background-color: #121212;
+        color: #E0E0E0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        height: 100vh;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+        font-weight: normal;
+        color: #aaa;
+        margin-bottom: 5px;
+    }
+
+    .card {
+        background: linear-gradient(to right bottom, #4535c1, #334ac9, #255cce, #206cd1, #2c7ad1, #0389d7, #0098d9, #07a5da, #00b7db, #19c7d7, #4dd6d0, #77e4c8);
+        border-radius: 25px;
+        padding: 25px 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: min(340px, 80vw);
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        opacity: 0.75;
+    }
+
+    .value-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        background: rgba(0,0,0,0.25);
+        border-radius: 14px;
+        padding: 10px 14px;
+        gap: 10px;
+    }
+
+    .value {
+        font-size: 1rem;
+        font-weight: bold;
+        letter-spacing: 0.04em;
+        word-break: break-all;
+    }
+
+    .copy-btn {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 5px 12px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s;
+        flex-shrink: 0;
+    }
+
+    .copy-btn:hover {
+        background: rgba(255,255,255,0.28);
+    }
+
+    .main-btn {
+        background-color: #1E1E1E;
+        color: #E0E0E0;
+        border: none;
+        border-radius: 25px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.15s;
+        width: min(340px, 80vw);
+        padding: 18px;
+    }
+
+    .main-btn:hover {
+        background-color: #333;
+    }
+</style>
+
+</html>
